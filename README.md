@@ -1,5 +1,5 @@
 # rl-dqn-learning
-Implementation of Cartpole DQN, Dueling-DQN, DDQN, with Prioritized Experience Replay
+Implementation of DQN, Dueling-DQN, DDQN, with Prioritized Experience Replay using Cartpole v1.0
 
 References:
 1) https://github.com/rlcode/per
