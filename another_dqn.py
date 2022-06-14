@@ -109,7 +109,8 @@ class Memory(object):
             minibatch.append([data[0],data[1],data[2],data[3],data[4]])
         
         sampling_probabilities = priorities / self.tree.total_priority
-        is_weight = np.power(self.tree.memory_length() * sampling_probabilities, -self.PER_b)
+        #compute importance weight
+        is_weight = np.power(self.tree.memory_length() * sampling_probabilities, -self.PER_b) 
         is_weight /= is_weight.max()
         #print (sampling_probabilities)
         
@@ -129,7 +130,7 @@ class DQNAgent:
     def __init__(self, state_size, action_size,per_state,ddqn_state,duel_state):
         # if you want to see Cartpole learning, then change to True
         self.render = False
-        self.load_model = False
+        self.load_model = True
         self.mse = tf.keras.losses.MeanSquaredError()
         # get size of state and action
         self.state_size = state_size
@@ -154,7 +155,7 @@ class DQNAgent:
         if self.PER_enable == True:
               self.memory = Memory(2000)
               self.is_weight = self.memory.is_weight
-        else:
+        else: #PER = false
               self.memory = deque(maxlen=2000)
         # create main model and target model
         self.model = self.build_model()
@@ -164,7 +165,18 @@ class DQNAgent:
         self.update_target_model()
 
         if self.load_model:
-            self.model.load_weights("./save_model/cartpole_dqn.h5")
+            if self.PER_enable == False and self.ddqn_enable == False and self.duel_enable == False:
+                self.model.load_weights("./save_model/cartpole_dqn.h5")
+            elif self.PER_enable == True and self.ddqn_enable == False and self.duel_enable == False:
+                self.model.load_weights("./save_model/cartpole_per_dqn.h5")
+            elif self.PER_enable == False and self.ddqn_enable == True and self.duel_enable == False:
+                self.model.load_weights("./save_model/cartpole_ddqn.h5")
+            elif self.PER_enable == True and self.ddqn_enable == True and self.duel_enable == False:
+                self.model.load_weights("./save_model/cartpole_per_ddqn.h5")
+            elif self.PER_enable == False and self.ddqn_enable == False and self.duel_enable == True:
+                self.model.load_weights("./save_model/cartpole_duel_dqn.h5")
+            elif self.PER_enable == True and self.ddqn_enable == False and self.duel_enable == True:
+                self.model.load_weights("./save_model/cartpole_per_duel_dqn.h5")
             
     # approximate Q function using Neural Network
     # state is input and Q Value of each action is output of network
@@ -434,7 +446,7 @@ def run_DQN(agent,scores,episodes,ax):
                 # stop training
                 
                 if np.mean(scores[-min(10, len(scores)):]) > 490:
-                    sys.exit()
+                    return
 
         # save the model
         if e % 50 == 0:
@@ -491,7 +503,7 @@ if __name__ == "__main__":
     print("This is DQN")
     agent = DQNAgent(state_size, action_size,False,False,False) #set parameters
     scores, episodes = [], []
-    #run_DQN(agent,scores,episodes,ax)
+    run_DQN(agent,scores,episodes,ax)
     
     plot.figure(3)
     plot.clf()
@@ -500,7 +512,7 @@ if __name__ == "__main__":
     print("This is PER_DQN")
     agent = DQNAgent(state_size, action_size,True,False,False) #set parameters
     scores, episodes = [], []
-    #run_DQN(agent,scores,episodes,ax)
+    run_DQN(agent,scores,episodes,ax)
     
     
     plot.figure(3)
@@ -510,7 +522,7 @@ if __name__ == "__main__":
     print("This is DDQN")
     agent = DQNAgent(state_size, action_size,False,True,False)
     scores, episodes = [], []
-    #run_DQN(agent,scores,episodes,ax)
+    run_DQN(agent,scores,episodes,ax)
     
     plot.figure(3)
     plot.clf()
